@@ -219,6 +219,7 @@ https://github.com/brad112358/easy_E22
 #define USE_SSD1306
 // #define USE_SH1106
 
+#define USE_SX1268
 #define USE_SX1262
 #define PIN_SPI_MISO (32 + 13) // P1.13
 #define PIN_SPI_MOSI (32 + 11) // P1.11
