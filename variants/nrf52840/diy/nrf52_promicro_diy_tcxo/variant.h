@@ -239,7 +239,7 @@ https://github.com/brad112358/easy_E22
 #define SX126X_RESET LORA_RESET
 #define SX126X_RXEN (0 + 11) // P0.11
 #define SX126X_TXEN (32 + 0) // P1.00
-#define SX126X_MAX_POWER 8   // Default to prevent damage to E22_900M33S; Comment out for others
+//#define SX126X_MAX_POWER 8   // Default to prevent damage to E22_900M33S; Comment out for others
 #undef TX_GAIN_LORA
 #define TX_GAIN_LORA 0 // 8 for E22 900M30S, 25 for 900M33S, 22 for 3.7V battery powered 900M33S,  0 for 900M22S
 #endif
