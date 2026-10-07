@@ -21,6 +21,7 @@ export PLATFORMIO_SETTING_CHECK_PRUNE_SYSTEM_THRESHOLD=10240
 if [[ -n "${PIO_TOKEN}" ]]; then
     export PLATFORMIO_AUTH_TOKEN="${PIO_TOKEN}"
 fi
+
 # Conditionally enable verbose output.
 if [[ "${MT_VERBOSE}" == "1" ]]; then
     export PLATFORMIO_SETTING_FORCE_VERBOSE=1
@@ -38,10 +39,6 @@ elif [[ "$MT_PLATFORM" == stm32 ]]; then
     MT_PLATFORM="stm32wl"
 fi
 
-# ESP32 / pioarduino compatibility workaround:
-# platform-espressif32 creates a nested PlatformIO environment in
-# $PLATFORMIO_CORE_DIR/penv. Pin that nested core to 6.1.19 so it
-# stays compatible with tool-scons 4.8.1 used by platform 55.03.311.
 # ESP32 / pioarduino compatibility workaround
 if [[ "$MT_PLATFORM" == "esp32" ]]; then
     echo "Preparing nested pioarduino environment..."
@@ -62,7 +59,7 @@ if [[ "$MT_PLATFORM" == "esp32" ]]; then
 
     "$PLATFORMIO_CORE_DIR/penv/bin/pio" --version
 
-    echo "Patching platform-espressif32 to stop managing tool-scons..."
+    echo "Locating platform-espressif32..."
 
     PLATFORM_PY="$(find \
         "$PLATFORMIO_CORE_DIR/platforms" \
@@ -80,6 +77,8 @@ if [[ "$MT_PLATFORM" == "esp32" ]]; then
     echo "Using platform file:"
     echo "  $PLATFORM_PY"
 
+    echo "Patching COMMON_IDF_PACKAGES..."
+
     "$PLATFORMIO_CORE_DIR/penv/bin/python" - "$PLATFORM_PY" <<'PY'
 import sys
 from pathlib import Path
@@ -87,28 +86,63 @@ from pathlib import Path
 path = Path(sys.argv[1])
 text = path.read_text()
 
-old = '    "tool-scons",\n'
-new = ''
+old_block = '''COMMON_IDF_PACKAGES = [
+    "tool-cmake",
+    "tool-ninja",
+    "tool-scons",
+    "tool-esp-rom-elfs"
+]'''
 
-if old not in text:
+new_block = '''COMMON_IDF_PACKAGES = [
+    "tool-cmake",
+    "tool-ninja",
+    "tool-esp-rom-elfs"
+]'''
+
+if old_block in text:
+    text = text.replace(old_block, new_block, 1)
+    path.write_text(text)
+    print("Patched COMMON_IDF_PACKAGES: removed tool-scons")
+elif new_block in text:
+    print("COMMON_IDF_PACKAGES already patched")
+else:
     raise SystemExit(
-        f'ERROR: expected tool-scons entry not found in {path}'
+        f"ERROR: expected COMMON_IDF_PACKAGES block not found in {path}"
     )
-
-text = text.replace(old, new, 1)
-path.write_text(text)
-
-print(f"Patched {path}: removed tool-scons from COMMON_IDF_PACKAGES")
 PY
 
-    echo "Verifying patch..."
+    echo "Verifying COMMON_IDF_PACKAGES patch..."
 
-    if grep -A8 -B2 'COMMON_IDF_PACKAGES' "$PLATFORM_PY" | grep -q '"tool-scons"'; then
+    if "$PLATFORMIO_CORE_DIR/penv/bin/python" - "$PLATFORM_PY" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text()
+
+start = text.find("COMMON_IDF_PACKAGES = [")
+if start < 0:
+    raise SystemExit(1)
+
+end = text.find("]", start)
+if end < 0:
+    raise SystemExit(1)
+
+block = text[start:end + 1]
+
+if '"tool-scons"' in block:
+    raise SystemExit(1)
+
+print("COMMON_IDF_PACKAGES verified: tool-scons is absent")
+PY
+    then
+        :
+    else
         echo "ERROR: tool-scons is still present in COMMON_IDF_PACKAGES"
         exit 1
     fi
 
-    echo "tool-scons management disabled in platform.py"
+    echo "ESP32 / pioarduino compatibility patch completed."
 fi
 
 # Build
@@ -116,6 +150,7 @@ if [ "$MT_TARGET" = "build" ]; then
     echo "Building PlatformIO environment: $MT_ENV"
     /workspace/bin/build-"${MT_PLATFORM}".sh "$MT_ENV"
     echo "Build artifacts are located at: $PLATFORMIO_BUILD_DIR"
+
 # Check
 elif [ "$MT_TARGET" = "check" ]; then
     /workspace/bin/check-all.sh "$MT_ENV"
