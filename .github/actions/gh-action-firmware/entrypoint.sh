@@ -38,6 +38,28 @@ elif [[ "$MT_PLATFORM" == stm32 ]]; then
     MT_PLATFORM="stm32wl"
 fi
 
+# ESP32 / pioarduino compatibility workaround:
+# platform-espressif32 creates a nested PlatformIO environment in
+# $PLATFORMIO_CORE_DIR/penv. Pin that nested core to 6.1.19 so it
+# stays compatible with tool-scons 4.8.1 used by platform 55.03.311.
+if [[ "$MT_PLATFORM" == "esp32" ]]; then
+    echo "Preparing nested pioarduino environment..."
+
+    pio pkg install --environment "$MT_ENV"
+
+    if [[ -x "$PLATFORMIO_CORE_DIR/penv/bin/python" ]]; then
+        uv pip install \
+            --python "$PLATFORMIO_CORE_DIR/penv/bin/python" \
+            "pioarduino==6.1.19"
+
+        "$PLATFORMIO_CORE_DIR/penv/bin/pio" --version
+    else
+        echo "ERROR: nested PlatformIO Python not found:"
+        echo "  $PLATFORMIO_CORE_DIR/penv/bin/python"
+        exit 1
+    fi
+fi
+
 # Build
 if [ "$MT_TARGET" = "build" ]; then
     echo "Building PlatformIO environment: $MT_ENV"
