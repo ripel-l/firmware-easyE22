@@ -48,8 +48,10 @@ if [[ "$MT_PLATFORM" == "esp32" ]]; then
     pio pkg install --environment "$MT_ENV"
 
     if [[ -x "$PLATFORMIO_CORE_DIR/penv/bin/python" ]]; then
-        uv pip install \
-            --python "$PLATFORMIO_CORE_DIR/penv/bin/python" \
+        echo "Pinning nested pioarduino core to 6.1.19..."
+
+        "$PLATFORMIO_CORE_DIR/penv/bin/python" -m pip install \
+            --force-reinstall \
             "pioarduino==6.1.19"
 
         "$PLATFORMIO_CORE_DIR/penv/bin/pio" --version
