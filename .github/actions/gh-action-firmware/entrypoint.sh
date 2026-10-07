@@ -42,24 +42,73 @@ fi
 # platform-espressif32 creates a nested PlatformIO environment in
 # $PLATFORMIO_CORE_DIR/penv. Pin that nested core to 6.1.19 so it
 # stays compatible with tool-scons 4.8.1 used by platform 55.03.311.
+# ESP32 / pioarduino compatibility workaround
 if [[ "$MT_PLATFORM" == "esp32" ]]; then
     echo "Preparing nested pioarduino environment..."
 
     pio pkg install --environment "$MT_ENV"
 
-    if [[ -x "$PLATFORMIO_CORE_DIR/penv/bin/python" ]]; then
-        echo "Pinning nested pioarduino core to 6.1.19..."
-
-        "$PLATFORMIO_CORE_DIR/penv/bin/python" -m pip install \
-            --force-reinstall \
-            "pioarduino==6.1.19"
-
-        "$PLATFORMIO_CORE_DIR/penv/bin/pio" --version
-    else
+    if [[ ! -x "$PLATFORMIO_CORE_DIR/penv/bin/python" ]]; then
         echo "ERROR: nested PlatformIO Python not found:"
         echo "  $PLATFORMIO_CORE_DIR/penv/bin/python"
         exit 1
     fi
+
+    echo "Pinning nested pioarduino core to 6.1.19..."
+
+    "$PLATFORMIO_CORE_DIR/penv/bin/python" -m pip install \
+        --force-reinstall \
+        "pioarduino==6.1.19"
+
+    "$PLATFORMIO_CORE_DIR/penv/bin/pio" --version
+
+    echo "Patching platform-espressif32 to stop managing tool-scons..."
+
+    PLATFORM_PY="$(find \
+        "$PLATFORMIO_CORE_DIR/platforms" \
+        -type f \
+        -path '*/espressif32/platform.py' \
+        -print \
+        -quit
+    )"
+
+    if [[ -z "$PLATFORM_PY" || ! -f "$PLATFORM_PY" ]]; then
+        echo "ERROR: platform-espressif32/platform.py not found"
+        exit 1
+    fi
+
+    echo "Using platform file:"
+    echo "  $PLATFORM_PY"
+
+    "$PLATFORMIO_CORE_DIR/penv/bin/python" - "$PLATFORM_PY" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text()
+
+old = '    "tool-scons",\n'
+new = ''
+
+if old not in text:
+    raise SystemExit(
+        f'ERROR: expected tool-scons entry not found in {path}'
+    )
+
+text = text.replace(old, new, 1)
+path.write_text(text)
+
+print(f"Patched {path}: removed tool-scons from COMMON_IDF_PACKAGES")
+PY
+
+    echo "Verifying patch..."
+
+    if grep -A8 -B2 'COMMON_IDF_PACKAGES' "$PLATFORM_PY" | grep -q '"tool-scons"'; then
+        echo "ERROR: tool-scons is still present in COMMON_IDF_PACKAGES"
+        exit 1
+    fi
+
+    echo "tool-scons management disabled in platform.py"
 fi
 
 # Build
