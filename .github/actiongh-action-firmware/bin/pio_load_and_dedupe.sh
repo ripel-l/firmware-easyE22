@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PLATFORM_SRC="$1"
+# Parse PlatformIO project output for all environments that include the specified platform source directory
+to_build=$(
+    platformio project config --json-output |
+    jq -r ".[] | \
+    select(.[0] | type==\"string\" and startswith(\"env:\")) | \
+    select((.[1][] | select(.[0]==\"build_flags\") | .[1][] | test(\"-I\\\s?variants/$PLATFORM_SRC/\"))) | \
+    .[0] | ltrimstr(\"env:\")"
+)
+
+echo "Gathering environments for platform: $PLATFORM_SRC"
+
+TOOL_FLAGS=(--tool platformio/tool-mklittlefs)
+# Preload additional tools (platform dependent)
+case "$PLATFORM_SRC" in
+    esp32*)
+        # Updated with pioarduino-core releases
+        TOOL_FLAGS+=(--tool https://github.com/pioarduino/registry/releases/download/0.0.1/scons-4.11.1.zip)
+        ;;
+    *)
+        # Updated with platformio-core releases
+        TOOL_FLAGS+=(--tool "platformio/tool-cppcheck@~1.21100.0")
+        ;;
+esac
+
+echo "$to_build" | while read -r env; do
+    echo "################################################"
+    echo "▶️ Loading pkgs for env: $env"
+    echo "################################################"
+    # Install packages for building the PlatformIO environment
+    pio pkg install --environment "$env"
+    # Install additional tools
+    # `--no-save` prevents this from modifying platformio.ini
+    pio pkg install --environment "$env" --no-save "${TOOL_FLAGS[@]}"
+done
+echo "All packages loaded successfully."
+
+if [[ "$PLATFORM_SRC" != esp32* ]]; then
+    # Replace duplicate files in the core directory with hard links
+    echo "Deduplicating $PLATFORMIO_CORE_DIR"
+    jdupes --quiet -r -L "$PLATFORMIO_CORE_DIR"
+fi
+
+# Replace duplicate files in the workspace directory with hard links
+echo "Deduplicating $PLATFORMIO_WORKSPACE_DIR"
+jdupes --quiet -r -L "$PLATFORMIO_WORKSPACE_DIR"
+
+echo "Deduplication complete."
