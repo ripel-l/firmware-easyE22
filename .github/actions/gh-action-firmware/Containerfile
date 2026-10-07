@@ -49,7 +49,9 @@ RUN git clone --depth 1 --recurse-submodules --shallow-submodules \
 WORKDIR /deps
 
 COPY ./bin/pio_load_and_dedupe.sh /pio_load_and_dedupe.sh
-RUN /pio_load_and_dedupe.sh ${PIO_PLATFORM}
+
+RUN chmod +x /pio_load_and_dedupe.sh \
+    && /pio_load_and_dedupe.sh ${PIO_PLATFORM}
 
 # Builder image
 FROM base
