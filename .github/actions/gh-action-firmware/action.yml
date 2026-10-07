@@ -36,27 +36,25 @@ runs:
   using: composite
   steps:
     - id: build_meshtastic
+      shell: bash
       run: |
         set -euo pipefail
 
-        # `docker run` alone defaults to --pull=missing, so a runner that already has
-        # this (mutable) tag cached keeps using it indefinitely and a republished image
-        # never reaches the build. Pull explicitly: it is a cheap manifest check when the
-        # local copy is already current, and correct when it is not. Tolerate a failed
-        # pull so a registry blip falls back to the cached image rather than failing the
-        # build outright.
-        if ! docker pull --quiet "$MT_IMAGE"; then
-          echo "::warning::docker pull failed for $MT_IMAGE - falling back to the locally cached image"
-        fi
+        IMAGE_TAG="local/gh-action-firmware:${MT_PLATFORM}"
 
-        # Record which image actually ran. Without this the image vintage is invisible in
-        # the logs, so a container-side regression cannot be told apart from a code-side
-        # one when triaging a failed build.
-        echo "::group::Container image"
-        docker image inspect "$MT_IMAGE" \
-          --format 'image:   {{index .RepoDigests 0}}{{"\n"}}created: {{.Created}}{{"\n"}}rev:     {{index .Config.Labels "org.opencontainers.image.revision"}}' \
-          || echo "could not inspect $MT_IMAGE"
+        echo "::group::Build local gh-action-firmware image"
+
+        docker build \
+          --build-arg PIO_PLATFORM="${MT_PLATFORM}" \
+          --build-arg DEPS_FROM_REPO="https://github.com/${GITHUB_REPOSITORY}.git" \
+          --build-arg DEPS_FROM_REF="${GITHUB_REF_NAME}" \
+          -f "${GITHUB_ACTION_PATH}/Containerfile" \
+          -t "${IMAGE_TAG}" \
+          "${GITHUB_ACTION_PATH}"
+
         echo "::endgroup::"
+
+        echo "::group::Run gh-action-firmware"
 
         docker run --rm \
           --env GITHUB_ACTIONS \
@@ -67,15 +65,13 @@ runs:
           --env MT_TARGET \
           --env MT_VERBOSE \
           --env PIO_TOKEN \
-          -v $GITHUB_WORKSPACE:/workspace \
-          "$MT_IMAGE"
-      shell: bash
+          -v "${GITHUB_WORKSPACE}:/workspace" \
+          "${IMAGE_TAG}"
+
+        echo "::endgroup::"
       env:
-        MT_IMAGE: ghcr.io/meshtastic/gh-action-firmware:${{ inputs.meshtastic_branch }}-${{ inputs.pio_platform }}
-        PLATFORMIO_BUILD_DIR: /workspace/.pio/build
-        MT_ENV: ${{ inputs.pio_env }}
         MT_PLATFORM: ${{ inputs.pio_platform }}
+        MT_ENV: ${{ inputs.pio_env }}
         MT_TARGET: ${{ inputs.pio_target }}
-        # Enable verbose output if "debug logging" is enabled for the run.
         MT_VERBOSE: ${{ runner.debug || 0 }}
         PIO_TOKEN: ${{ inputs.pio_token }}
