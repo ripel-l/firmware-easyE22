@@ -1,0 +1,81 @@
+name: Setup Build Variant Composite Action
+description: Variant build actions for Meshtastic PlatformIO steps
+author: meshtastic
+
+inputs:
+  pio_platform:
+    description: The PlatformIO platform to build (esp32, nrf52, portduino, rp2xx0, stm32wl)
+    required: true
+  pio_env:
+    description: The PlatformIO environment to build
+    required: true
+  pio_target:
+    description: The PlatformIO run target (default is 'build')
+    required: false
+    default: build
+  # Deprecated
+  ota_firmware_source:
+    description: Deprecated - The source binary for OTA firmware
+    required: false
+    default: ""
+  # Deprecated
+  ota_firmware_target:
+    description: Deprecated - The target binary for OTA firmware
+    required: false
+    default: ""
+  pio_token:
+    description: PlatformIO token - Use to help with rate-limiting issues on PlatformIO's registry (optional)
+    required: false
+    default: ""
+  meshtastic_branch:
+    description: The Meshtastic branch (container) to use for the build.
+    required: false
+    default: develop
+
+runs:
+  using: composite
+  steps:
+    - id: build_meshtastic
+      run: |
+        set -euo pipefail
+
+        # `docker run` alone defaults to --pull=missing, so a runner that already has
+        # this (mutable) tag cached keeps using it indefinitely and a republished image
+        # never reaches the build. Pull explicitly: it is a cheap manifest check when the
+        # local copy is already current, and correct when it is not. Tolerate a failed
+        # pull so a registry blip falls back to the cached image rather than failing the
+        # build outright.
+        if ! docker pull --quiet "$MT_IMAGE"; then
+          echo "::warning::docker pull failed for $MT_IMAGE - falling back to the locally cached image"
+        fi
+
+        # Record which image actually ran. Without this the image vintage is invisible in
+        # the logs, so a container-side regression cannot be told apart from a code-side
+        # one when triaging a failed build.
+        echo "::group::Container image"
+        docker image inspect "$MT_IMAGE" \
+          --format 'image:   {{index .RepoDigests 0}}{{"\n"}}created: {{.Created}}{{"\n"}}rev:     {{index .Config.Labels "org.opencontainers.image.revision"}}' \
+          || echo "could not inspect $MT_IMAGE"
+        echo "::endgroup::"
+
+        docker run --rm \
+          --env GITHUB_ACTIONS \
+          --env XDG_CACHE_HOME \
+          --env PLATFORMIO_BUILD_DIR \
+          --env MT_ENV \
+          --env MT_PLATFORM \
+          --env MT_TARGET \
+          --env MT_VERBOSE \
+          --env PIO_TOKEN \
+          -v $GITHUB_WORKSPACE:/workspace \
+          "$MT_IMAGE"
+      shell: bash
+      env:
+        MT_IMAGE: ghcr.io/meshtastic/gh-action-firmware:${{ inputs.meshtastic_branch }}-${{ inputs.pio_platform }}
+        PLATFORMIO_BUILD_DIR: /workspace/.pio/build
+        MT_ENV: ${{ inputs.pio_env }}
+        MT_PLATFORM: ${{ inputs.pio_platform }}
+        MT_TARGET: ${{ inputs.pio_target }}
+        # Enable verbose output if "debug logging" is enabled for the run.
+        MT_VERBOSE: ${{ runner.debug || 0 }}
+        PIO_TOKEN: ${{ inputs.pio_token }}
