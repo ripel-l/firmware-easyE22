@@ -6,27 +6,33 @@ inputs:
   pio_platform:
     description: The PlatformIO platform to build (esp32, nrf52, portduino, rp2xx0, stm32wl)
     required: true
+
   pio_env:
     description: The PlatformIO environment to build
     required: true
+
   pio_target:
     description: The PlatformIO run target (default is 'build')
     required: false
     default: build
+
   # Deprecated
   ota_firmware_source:
     description: Deprecated - The source binary for OTA firmware
     required: false
     default: ""
+
   # Deprecated
   ota_firmware_target:
     description: Deprecated - The target binary for OTA firmware
     required: false
     default: ""
+
   pio_token:
     description: PlatformIO token - Use to help with rate-limiting issues on PlatformIO's registry (optional)
     required: false
     default: ""
+
   meshtastic_branch:
     description: The Meshtastic branch (container) to use for the build.
     required: false
@@ -37,8 +43,46 @@ runs:
   steps:
     - id: build_meshtastic
       shell: bash
+      env:
+        MT_PLATFORM: ${{ inputs.pio_platform }}
+        MT_ENV: ${{ inputs.pio_env }}
+        MT_TARGET: ${{ inputs.pio_target }}
+        MT_VERBOSE: ${{ runner.debug || 0 }}
+        PIO_TOKEN: ${{ inputs.pio_token }}
+        PLATFORMIO_BUILD_DIR: /workspace/.pio/build
       run: |
         set -euo pipefail
+
+        echo "::group::Locate local gh-action-firmware"
+
+        # Prefer the path GitHub provides for a local composite action.
+        # Fall back to the repository path if necessary.
+        ACTION_DIR="${GITHUB_ACTION_PATH:-}"
+
+        if [[ -z "${ACTION_DIR}" || ! -f "${ACTION_DIR}/Containerfile" ]]; then
+          ACTION_DIR="${GITHUB_WORKSPACE}/.github/actions/gh-action-firmware"
+        fi
+
+        echo "GITHUB_WORKSPACE=${GITHUB_WORKSPACE}"
+        echo "GITHUB_ACTION_PATH=${GITHUB_ACTION_PATH:-<empty>}"
+        echo "ACTION_DIR=${ACTION_DIR}"
+
+        echo "--- ACTION_DIR contents ---"
+        ls -la "${ACTION_DIR}" || true
+
+        echo "--- Find Containerfile in workspace ---"
+        find "${GITHUB_WORKSPACE}" \
+          -maxdepth 6 \
+          -type f \
+          \( -name "Containerfile" -o -name "action.yml" \) \
+          -print 2>/dev/null || true
+
+        if [[ ! -f "${ACTION_DIR}/Containerfile" ]]; then
+          echo "::error::Containerfile was not found at ${ACTION_DIR}/Containerfile"
+          exit 1
+        fi
+
+        echo "::endgroup::"
 
         IMAGE_TAG="local/gh-action-firmware:${MT_PLATFORM}"
 
@@ -48,9 +92,17 @@ runs:
           --build-arg PIO_PLATFORM="${MT_PLATFORM}" \
           --build-arg DEPS_FROM_REPO="https://github.com/${GITHUB_REPOSITORY}.git" \
           --build-arg DEPS_FROM_REF="${GITHUB_REF_NAME}" \
-          -f "${GITHUB_ACTION_PATH}/Containerfile" \
+          -f "${ACTION_DIR}/Containerfile" \
           -t "${IMAGE_TAG}" \
-          "${GITHUB_ACTION_PATH}"
+          "${ACTION_DIR}"
+
+        echo "::endgroup::"
+
+        echo "::group::Local container image"
+
+        docker image inspect "${IMAGE_TAG}" \
+          --format 'image: {{.RepoTags}}{{"\n"}}created: {{.Created}}' \
+          || true
 
         echo "::endgroup::"
 
@@ -69,9 +121,3 @@ runs:
           "${IMAGE_TAG}"
 
         echo "::endgroup::"
-      env:
-        MT_PLATFORM: ${{ inputs.pio_platform }}
-        MT_ENV: ${{ inputs.pio_env }}
-        MT_TARGET: ${{ inputs.pio_target }}
-        MT_VERBOSE: ${{ runner.debug || 0 }}
-        PIO_TOKEN: ${{ inputs.pio_token }}
