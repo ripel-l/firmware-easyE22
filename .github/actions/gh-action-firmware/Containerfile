@@ -21,24 +21,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Python dependencies
-# ESP32 targets build against pioarduino Core 6.1.19.
+# ESP32 targets build against pioarduino, everything else against upstream platformio.
 ARG PIO_PLATFORM
 COPY requirements_*.txt /tmp/
 
 RUN case "${PIO_PLATFORM}" in \
-    esp32*) \
-        pip install -r /tmp/requirements_pioarduino.txt && \
-        pip install --force-reinstall \
-          https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip \
-        ;; \
-    *) \
-        pip install -r /tmp/requirements_platformio.txt \
-        ;; \
+    esp32*) pip install -r /tmp/requirements_pioarduino.txt ;; \
+    *) pip install -r /tmp/requirements_platformio.txt ;; \
     esac
-
-RUN platformio --version \
-    && python -c "import SCons; print('SCons:', SCons.__file__); import SCons.Tool.FortranCommon; print('FortranCommon: OK')"
-
 # PlatformIO Configuration
 ENV PLATFORMIO_CORE_DIR=/pio/core
 ENV PLATFORMIO_WORKSPACE_DIR=/pio/workspace
