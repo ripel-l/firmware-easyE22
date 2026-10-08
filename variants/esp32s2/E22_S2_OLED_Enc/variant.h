@@ -42,6 +42,11 @@
 #define BATTERY_PIN 1
 //#define ADC_CHANNEL ADC_CHANNEL_0   // Використовуємо елемент enum замість int
 //#define ADC_MULTIPLIER 1.47f
+//#define BATTERY_PIN 35 // A battery voltage measurement pin, voltage divider connected here to measure battery voltage
+#define ADC_CHANNEL ADC_CHANNEL_0
+#define ADC_MULTIPLIER 1.47 // (R1 = 470k, R2 = 680k)
+#define EXT_PWR_DETECT 9    // Pin to detect connected external power source for LILYGO® TTGO T-Energy T18 and other DIY boards
+
 
 // E22-400M22S
 #define USE_SX1268
