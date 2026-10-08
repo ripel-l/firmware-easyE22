@@ -24,10 +24,13 @@
 | P1.02 | TX to GPS   |     | 0.13     | 3V3_EN       |
 | P1.07 | RX from GPS |     |          |              |
 */
-  
+
+// --- Вбудований світлодіод Lolin S2 Mini ---
+#define LED_PIN 15
+
 // I2C
-#define I2C_SDA 34 // I2C pins for this board
-#define I2C_SCL 36
+#define I2C_SDA 11 // I2C pins for this board
+#define I2C_SCL 12
 
 // OLED
 #define USE_SSD1306
@@ -35,27 +38,32 @@
 // encoder
 //
 
+// --- Замір напруги АКБ (ADC1) ---
+#define BATTERY_PIN 1
+#define ADC_CHANNEL ADC1_GPIO1_CHANNEL
+#define ADC_MULTIPLIER 1.47f
+
 // E22-400M22S
 #define USE_SX1268
 //#define USE_SX1262
-#define PIN_SPI_MISO 19
-#define PIN_SPI_MOSI 27
-#define PIN_SPI_SCK 5 
+#define PIN_SPI_MISO 8
+#define PIN_SPI_MOSI 10
+#define PIN_SPI_SCK 13 
 
 #define LORA_MISO PIN_SPI_MISO
 #define LORA_MOSI PIN_SPI_MOSI
 #define LORA_SCK PIN_SPI_SCK
-#define LORA_CS 18      // NSS
-#define LORA_DIO0 32    // BUSY
-#define LORA_DIO1 33   // IRQ
-#define LORA_RESET 23 // NRST
+#define LORA_CS 14      // NSS
+#define LORA_DIO0 4    // BUSY
+#define LORA_DIO1 2   // IRQ
+#define LORA_RESET 6 // NRST
 
 #define SX126X_CS LORA_CS
 #define SX126X_DIO1 LORA_DIO1
 #define SX126X_BUSY LORA_DIO0
 #define SX126X_RESET LORA_RESET
-#define SX126X_RXEN 14
-#define SX126X_TXEN 15
+#define SX126X_RXEN 16
+#define SX126X_TXEN 18
 //#define SX126X_MAX_POWER 8   // Default to prevent damage to E22_900M33S; Comment out for others
 #undef TX_GAIN_LORA
 #define TX_GAIN_LORA 0  
