@@ -40,7 +40,7 @@
 
 // --- Замір напруги АКБ (ADC1) ---
 #define BATTERY_PIN 1
-#define ADC_CHANNEL ADC1_GPIO1_CHANNEL
+#define ADC_CHANNEL ADC_CHANNEL_0   // Використовуємо елемент enum замість int
 #define ADC_MULTIPLIER 1.47f
 
 // E22-400M22S
