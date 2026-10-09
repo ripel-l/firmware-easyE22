@@ -1,6 +1,12 @@
 #ifndef _VARIANT_E22_S2_OLED_
 #define _VARIANT_E22_S2_OLED_
 
+// --- Фікс калібрування АЦП для ESP32-S2 ---
+#include <sdkconfig.h>
+#undef CONFIG_ADC_CALI_EFUSE_TP_ENABLE
+#define CONFIG_ADC_CALI_EFUSE_TP_ENABLE 1
+#undef CONFIG_ADC_CALI_EFUSE_VREF_ENABLE
+#define CONFIG_ADC_CALI_EFUSE_VREF_ENABLE 1
 
 /*
 | Pin   | Function    |     | Pin      | Function     |
