@@ -170,7 +170,7 @@ static bool initAdcCalibration()
         .unit_id = unit,
         .atten = atten,
         .bitwidth = adc_width,
-        .default_vref = DEFAULT_VREF,
+        //.default_vref = DEFAULT_VREF,
     };
     esp_err_t ret = adc_cali_create_scheme_line_fitting(&cali_config, &adc_cali_handle);
     if (ret == ESP_OK) {
