@@ -1,0 +1,8 @@
+#pragma once
+#include <sdkconfig.h>
+
+#undef CONFIG_ADC_CALI_EFUSE_TP_ENABLE
+#define CONFIG_ADC_CALI_EFUSE_TP_ENABLE 1
+
+#undef CONFIG_ADC_CALI_EFUSE_VREF_ENABLE
+#define CONFIG_ADC_CALI_EFUSE_VREF_ENABLE
