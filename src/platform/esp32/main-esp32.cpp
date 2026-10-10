@@ -3,6 +3,7 @@
 #include "configuration.h"
 #include "esp_task_wdt.h"
 #include "main.h"
+#include <esp_pm.h>
 
 #if !defined(CONFIG_IDF_TARGET_ESP32S2) && !MESHTASTIC_EXCLUDE_BLUETOOTH
 #include "nimble/NimbleBluetooth.h"
@@ -322,6 +323,8 @@ void esp32Loop()
         lastCpuLog = now;
         LOG_DEBUG("CPU_FREQ_MONITOR: current=%u MHz",
                   getCpuFrequencyMhz());
+        esp_err_t dumpResult = esp_pm_dump_locks(stdout);
+LOG_DEBUG("PM_LOCK_DUMP: result=%d", (int)dumpResult);
     }
 #endif
     // for debug printing
