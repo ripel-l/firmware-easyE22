@@ -314,7 +314,16 @@ void esp32Setup()
 void esp32Loop()
 {
     esp_task_wdt_reset(); // service our app level watchdog
+#ifdef E22_S2_TEST_WIFI_CPU_SCALING
+    static uint32_t lastCpuLog = 0;
+    const uint32_t now = millis();
 
+    if (now - lastCpuLog >= 5000) {
+        lastCpuLog = now;
+        LOG_DEBUG("CPU_FREQ_MONITOR: current=%u MHz",
+                  getCpuFrequencyMhz());
+    }
+#endif
     // for debug printing
     // radio.radioIf.canSleep();
 }
