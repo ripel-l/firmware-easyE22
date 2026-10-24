@@ -111,8 +111,8 @@
 // Buttons
 #define BUTTON_PIN 0 // Use the BOOT button as the user button
 // I2C
-#define I2C_SCL 4
-#define I2C_SDA 6
+#define I2C_SCL 47
+#define I2C_SDA 48
 // UART
 #define UART_TX 43
 #define UART_RX 44
@@ -138,7 +138,8 @@
 // FIXME: change behavior in src to default to not having screen if is undefined
 // FIXME: remove 0/1 option for HAS_SCREEN in src, change to being defined or not
 // FIXME: check if it actually causes a crash when not specifiying that a display isn't present
-#define HAS_SCREEN 0 // Assume no screen present by default to prevent crash...
+//#define HAS_SCREEN 0 // Assume no screen present by default to prevent crash...
+#define USE_SH1107
 
 // GPS
 // FIXME: unsure what to define HAS_GPS as if GPS isn't always present
