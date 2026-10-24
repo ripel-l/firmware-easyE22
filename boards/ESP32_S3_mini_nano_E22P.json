@@ -6,9 +6,13 @@
     },
     "core": "esp32",
     "extra_flags": [
-      "-DBOARD_HAS_PSRAM",
-      "-DARDUINO_USB_CDC_ON_BOOT=1",
-      "-DARDUINO_USB_MODE=1"
+      "-D BOARD_HAS_PSRAM",
+      "-D ARDUINO_USB_CDC_ON_BOOT=1",
+      "-D ARDUINO_USB_MSC_ON_BOOT=0",
+      "-D ARDUINO_USB_DFU_ON_BOOT=0",
+      "-D ARDUINO_USB_MODE=1",
+      "-D ARDUINO_RUNNING_CORE=1",
+      "-D ARDUINO_EVENT_RUNNING_CORE=1"
     ],
     "f_cpu": "240000000L",
     "f_flash": "80000000L",
@@ -17,7 +21,7 @@
     "mcu": "esp32s3",
     "variant": "ESP32-S3_mini_nano_E22P"
   },
-  "connectivity": ["wifi"],
+  "connectivity": ["wifi", "bluetooth"],
   "debug": {
     "default_tool": "esp-builtin",
     "onboard_tools": ["esp-builtin"],
@@ -29,11 +33,10 @@
     "flash_size": "16MB",
     "maximum_ram_size": 327680,
     "maximum_size": 16777216,
-    "use_1200bps_touch": true,
-    "wait_for_upload_port": true,
     "require_upload_port": true,
     "speed": 921600
   },
-  "url": "https://github.com",
-  "vendor": "Custom DIY"
+
+  "url": "https://documentation.espressif.com/esp32-s3_datasheet_en.pdf",
+  "vendor": "Espressif"
 }
