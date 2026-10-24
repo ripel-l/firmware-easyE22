@@ -114,8 +114,8 @@
 #define I2C_SCL 4
 #define I2C_SDA 6
 // UART
-//#define UART_TX 43
-//#define UART_RX 44
+#define UART_TX 43
+#define UART_RX 44
 
 // Power
 // Outputting 22dBm from SX1262 results in ~30dBm E22-900M30S output (module only uses last stage of the YP2233W PA)
