@@ -102,6 +102,9 @@ void setCPUFast(bool on)
 // The Heltec LORA32 V1 runs at 26 MHz base frequency and doesn't react well to switching to 80 MHz...
 #if !defined(ARDUINO_HELTEC_WIFI_LORA_32) && !defined(CONFIG_IDF_TARGET_ESP32C3)
     setCpuFrequencyMhz(on ? 240 : 80);
+    Serial.printf("[CPU] Requested: %d MHz, Actual: %d MHz\n",
+                  on ? 240 : 80,
+                  getCpuFrequencyMhz());
 #endif
 
 #endif
