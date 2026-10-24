@@ -111,8 +111,8 @@
 // Buttons
 #define BUTTON_PIN 0 // Use the BOOT button as the user button
 // I2C
-#define I2C_SCL 47
-#define I2C_SDA 48
+#define I2C_SCL 4
+#define I2C_SDA 6
 // UART
 //#define UART_TX 43
 //#define UART_RX 44
