@@ -135,7 +135,6 @@
 #define SX126X_MAX_POWER 8 // SX126xInterface.cpp defaults to 22 if not defined, but here we define it for good practice
 #undef TX_GAIN_LORA
 #define TX_GAIN_LORA 8 // 8 for E22 900M30S, 25 for 900M33S, 22 for 3.7V battery powered 900M33S,  0 for 900M22S
-#endif
 
 // Display
 // FIXME: change behavior in src to default to not having screen if is undefined
