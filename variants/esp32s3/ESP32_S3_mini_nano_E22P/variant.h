@@ -132,7 +132,10 @@
 // same, but you would get a wider angle of coverage. Also take insertion loss and possibly VSWR into account
 // (https://www.everythingrf.com/tech-resources/vswr). Please check regulations yourself and check airtime, usage (for example
 // whether you are airborne), frequency, and power laws.
-#define SX126X_MAX_POWER 22 // SX126xInterface.cpp defaults to 22 if not defined, but here we define it for good practice
+#define SX126X_MAX_POWER 8 // SX126xInterface.cpp defaults to 22 if not defined, but here we define it for good practice
+#undef TX_GAIN_LORA
+#define TX_GAIN_LORA 8 // 8 for E22 900M30S, 25 for 900M33S, 22 for 3.7V battery powered 900M33S,  0 for 900M22S
+#endif
 
 // Display
 // FIXME: change behavior in src to default to not having screen if is undefined
