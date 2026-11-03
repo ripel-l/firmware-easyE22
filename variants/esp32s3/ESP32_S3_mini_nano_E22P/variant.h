@@ -132,9 +132,9 @@
 // same, but you would get a wider angle of coverage. Also take insertion loss and possibly VSWR into account
 // (https://www.everythingrf.com/tech-resources/vswr). Please check regulations yourself and check airtime, usage (for example
 // whether you are airborne), frequency, and power laws.
-#define SX126X_MAX_POWER 6 // SX126xInterface.cpp defaults to 22 if not defined, but here we define it for good practice
+#define SX126X_MAX_POWER 12 // SX126xInterface.cpp defaults to 22 if not defined, but here we define it for good practice
 #undef TX_GAIN_LORA
-#define TX_GAIN_LORA 6 // 8 for E22 900M30S, 25 for 900M33S, 22 for 3.7V battery powered 900M33S,  0 for 900M22S
+#define TX_GAIN_LORA 8 // 8 for E22 900M30S, 25 for 900M33S, 22 for 3.7V battery powered 900M33S,  0 for 900M22S
 
 // Display
 // FIXME: change behavior in src to default to not having screen if is undefined
@@ -157,7 +157,7 @@
 //                                                                             //
 /////////////////////////////////////////////////////////////////////////////////
 
-#define USE_SX1262 // E22-900M30S, E22-900M22S, and E22-900MM22S (not E220!) use SX1262
+//#define USE_SX1262 // E22-900M30S, E22-900M22S, and E22-900MM22S (not E220!) use SX1262
 #define USE_SX1268 // E22-400M30S, E22-400M33S, E22-400M22S, and E22-400MM22S use SX1268
 
 // The below isn't needed as we directly define SX126X_TXEN and SX126X_RXEN instead of using proxies E22_TXEN and E22_RXEN
