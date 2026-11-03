@@ -175,6 +175,7 @@ being defined but having no value #if (!defined(E22_RXEN) || !(0 <= E22_RXEN && 
 // E22 series TCXO voltage is 1.8V per https://www.ebyte.com/en/pdf-down.aspx?id=781 (source
 // https://github.com/jgromes/RadioLib/issues/12#issuecomment-520695575), so set it as such
 #define SX126X_DIO3_TCXO_VOLTAGE 1.8
+#define TCXO_OPTIONAL // make it so that the firmware can try both TCXO and XTAL
 
 #define LORA_CS SX126X_CS // FIXME: for some reason both are used in /src
 
