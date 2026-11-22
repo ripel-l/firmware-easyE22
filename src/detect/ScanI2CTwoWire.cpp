@@ -560,7 +560,7 @@ void ScanI2CTwoWire::scanPort(I2CPort port, uint8_t *address, uint8_t asize)
             case INA_ADDR: // same as HM330X, ES7210 and SHT2X
             case INA_ADDR_ALTERNATE:
             case INA_ADDR_WAVESHARE_UPS:
-            case 0x44: {
+            case SHTXX_ADDR:     // same as OPT3001_ADDR_ALT (moved here temporary) {
                 uint16_t mfg = getRegisterValue(ScanI2CTwoWire::RegisterLocation(addr, 0xFE), 2);
 
                 LOG_DEBUG("Register MFG_UID: 0x%x", mfg);
@@ -691,7 +691,7 @@ void ScanI2CTwoWire::scanPort(I2CPort port, uint8_t *address, uint8_t asize)
                     }
                     break;
                 }
-            case SHTXX_ADDR:     // same as OPT3001_ADDR_ALT
+            //case SHTXX_ADDR:     // same as OPT3001_ADDR_ALT
             case SHTXX_ADDR_ALT: // same as OPT3001_ADDR
                 if (getRegisterValue(ScanI2CTwoWire::RegisterLocation(addr, 0x7E), 2) == 0x5449) {
                     type = OPT3001;
